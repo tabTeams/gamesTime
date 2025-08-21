@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เกมส์เดาใจ</title>
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #fce4ec;
+    color: #4a148c;
+    text-align: center;
+    padding: 20px;
+    transition: background-color 0.5s;
+    line-height: 1.6;
+}
+.container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    max-width: 600px;
+    margin: 20px auto;
+    border: 3px solid #e91e63;
+}
+h1, h2 {
+    color: #880e4f;
+}
+.question-box {
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    font-weight: bold;
+}
+.choices {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.choices button {
+    font-size: 1.2em;
+    padding: 15px 30px;
+    margin: 10px;
+    border: 2px solid #e91e63;
+    border-radius: 25px;
+    background-color: #fff;
+    color: #e91e63;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    width: 45%; 
+    box-sizing: border-box;
+}
+.choices button.with-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.choices button img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+.choices button:hover {
+    background-color: #e91e63;
+    color: #fff;
+    transform: translateY(-3px);
+}
+.hidden {
+    display: none;
+}
+.status {
+    font-size: 1.1em;
+    color: #e91e63;
+    margin-bottom: 20px;
+}
+#result-container {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #880e4f;
+}
+#caption {
+    margin-top: 20px;
+    font-size: 1.8em;
+    color: #c2185b;
+    font-weight: bold;
+    animation: fadein 2s;
+}
+#restart-btn {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+    margin-top: 20px;
+    padding: 12px 25px;
+    font-size: 1.2em;
+}
+#restart-btn:hover {
+    background-color: #45a049;
+}
+
+#back-home-btn,
+#back-home-intro-btn {
+    background-color: #3f51b5;
+    color: white;
+    border-color: #3f51b5;
+    margin-top: 10px;
+    padding: 12px 25px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 25px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#back-home-btn:hover,
+#back-home-intro-btn:hover {
+    background-color: #2c3e91;
+    transform: translateY(-3px);
+}
+
+
+.audio-controls {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.audio-controls button {
+    padding: 8px 15px;
+    font-size: 1em;
+    border: 2px solid #e91e63;
+    border-radius: 20px;
+    background-color: #fff;
+    color: #e91e63;
+    cursor: pointer;
+}
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+    }
+    .choices button {
+        width: 80%; 
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="game-title">เกมส์เดาใจ</h1>
+
+    <div id="intro-screen">
+        <h2>ยินดีต้อนรับเข้าสู่เกมส์เดาใจ</h2>
+        <p id="intro-description">เกมนี้จะทดสอบว่าคุณกับคนรักหรือเพื่อนสนิทนั้นรู้ใจกันมากแค่ไหน</p>
+        <p>กติกา</p>
+        <ul>
+            <li>ผู้เล่นคนที่ 1 จะเป็นคนแรกที่เลือกคำตอบตามใจตัวเองให้ครบ 5 ข้อ</li>
+            <li>ผู้เล่นคนที่ 2 จะเป็นคนทายใจว่าผู้เล่นคนที่ 1 เลือกคำตอบอะไร</li>
+            <li>เมื่อผู้เล่นคนที่ 2 ทายครบทุกข้อ ระบบจะแสดงผลลัพธ์ว่าทายใจได้ตรงกันกี่ข้อ</li>
+            <li>มีแคปชั่นน่ารักๆ แสดงผลตามคะแนนที่ทายถูก</li>
+        </ul>
+        <button id="start-btn" style="font-size: 1.5em; padding: 15px 30px;">เริ่มเล่นเกม</button>
+        <button id="back-home-intro-btn">กลับสู่หน้าหลัก</button>
+    </div>
+
+    <div id="game-area" class="hidden">
+        <h2 id="phase-title"></h2>
+        <div class="status">ข้อที่ <span id="question-number">1</span>/5</div>
+        <div class="question-box"></div>
+        <div class="choices" id="choices-container">
+            <button id="choice-1"></button>
+            <button id="choice-2"></button>
+            <button id="choice-3"></button>
+            <button id="choice-4"></button>
+        </div>
+    </div>
+    
+    <div id="player2-intro" class="hidden">
+        <h2>ได้เวลาทายใจ!</h2>
+        <p>ยื่นโทรศัพท์ให้ผู้เล่นคนที่ 2 เพื่อทายว่าเขาหรือเธอเลือกอะไรไปบ้าง</p>
+        <button id="start-p2-btn" style="font-size: 1.5em; padding: 15px 30px;">เริ่มทายใจ</button>
+    </div>
+
+    <div id="result-area" class="hidden">
+        <div id="result-container"></div>
+        <div id="caption"></div>
+        <button id="restart-btn">เล่นใหม่</button>
+        <button id="back-home-btn">กลับสู่หน้าหลัก</button>
+    </div>
+
+    <div id="audio-controls-section" class="audio-controls">
+        <p>การควบคุมเสียงพื้นหลัง</p>
+        <button id="toggle-music">เปิด/ปิดเพลง</button>
+        <button id="vol-down">ลดเสียง</button>
+        <button id="vol-up">เพิ่มเสียง</button>
+    </div>
+</div>
+
+<audio id="game-music" src="bg_music.ogg" loop></audio>
+<audio id="click-sound" src="click_sound.ogg"></audio>
+<audio id="reveal-sound" src="reveal_sound.ogg"></audio>
+<audio id="score-0-sound" src="score_0.ogg"></audio>
+<audio id="score-1-sound" src="score_1.ogg"></audio>
+<audio id="score-2-sound" src="score_2.ogg"></audio>
+<audio id="score-3-sound" src="score_3.ogg"></audio>
+<audio id="score-4-sound" src="score_4.ogg"></audio>
+<audio id="score-5-sound" src="score_5.ogg"></audio>
+
+<script>
+// Data
+const allQuestions = [
+    { q: "เวลาว่างคุณชอบทำอะไร?", choices: [{text: "ดูหนัง/ซีรีส์"}, {text: "อ่านหนังสือ"}, {text: "เล่นเกม"}, {text: "ฟังเพลง"}] },
+    { q: "ถ้าเข้าร้านอาหารตามสั่ง คุณชอบสั่งเมนูไหน?", choices: [{text: "ผัดกะเพรา"}, {text: "ข้าวไข่เจียว"}, {text: "ข้าวผัด"}, {text: "สุกี้"}] },
+    { q: "คุณชอบกินผลไม้อะไร?", choices: [{text: "ทุเรียน"}, {text: "แตงโม"}, {text: "สตรอว์เบอร์รี"}, {text: "มะม่วง"}] },
+    { q: "คุณชอบฤดูกาลไหนมากที่สุด?", choices: [{text: "ฤดูร้อน"}, {text: "ฤดูฝน"}, {text: "ฤดูหนาว"}, {text: "ฤดูใบไม้ผลิ"}] },
+    { q: "คุณชอบเครื่องดื่มอะไร?", choices: [{text: "กาแฟ"}, {text: "ชา"}, {text: "น้ำอัดลม"}, {text: "น้ำผลไม้"}] },
+    { q: "ถ้าไปเที่ยว คุณชอบไปไหนมากกว่า?", choices: [{text: "ทะเล"}, {text: "ภูเขา"}, {text: "เมืองใหญ่"}, {text: "ต่างประเทศ"}] },
+    { q: "คุณชอบอาหารประเภทไหน?", choices: [{text: "ของหวาน"}, {text: "ของคาว"}, {text: "ของทอด"}, {text: "ของปิ้งย่าง"}] },
+    { q: "สีเสื้อที่คุณชอบใส่บ่อยที่สุด?", choices: [{text: "สีขาว/ดำ"}, {text: "สีโทนเย็น"}, {text: "สีสันสดใส"}, {text: "สีเอิร์ธโทน"}] },
+    { q: "อาหารว่างที่คุณเลือกกินบ่อยที่สุดคือ?", choices: [{text: "ขนมกรุบกรอบ"}, {text: "ผลไม้"}, {text: "เบเกอรี่"}, {text: "ไอศกรีม"}] },
+    { q: "สไตล์การพักผ่อนของคุณคือ?", choices: [{text: "พักผ่อนอยู่บ้าน"}, {text: "ไปหาเพื่อน"}, {text: "ไปเที่ยว"}, {text: "ทำงานอดิเรก"}] },
+    { q: "ถ้าต้องออกกำลังกาย คุณชอบแบบไหน?", choices: [{text: "เล่นกีฬา"}, {text: "เข้ายิม"}, {text: "วิ่ง"}, {text: "โยคะ/พิลาทิส"}] },
+    { q: "สิ่งที่คุณชอบทำที่สุดในวันหยุดคือ?", choices: [{text: "นอนตื่นสายๆ"}, {text: "ตื่นเช้าไปทำกิจกรรม"}, {text: "ดูหนัง"}, {text: "ช้อปปิ้ง"}] },
+    { q: "คุณชอบการเดินทางแบบไหน?", choices: [{text: "เดินทางด้วยรถยนต์ส่วนตัว"}, {text: "เดินทางด้วยรถสาธารณะ"}, {text: "เครื่องบิน"}, {text: "เดิน/ปั่นจักรยาน"}] },
+    { q: "คุณชอบการทำงานแบบไหน?", choices: [{text: "ทำงานคนเดียว"}, {text: "ทำงานเป็นทีม"}, {text: "ทำงานแบบผสมผสาน"}, {text: "ทำงานจากที่บ้าน"}] },
+    { q: "เพลงที่คุณชอบฟังมากที่สุดคือ?", choices: [{text: "เพลงไทย"}, {text: "เพลงสากล"}, {text: "เพลงเกาหลี"}, {text: "เพลงญี่ปุ่น"}] },
+    { q: "คุณชอบดูหนังแนวไหน?", choices: [{text: "แอคชั่น"}, {text: "โรแมนติก"}, {text: "คอมเมดี้"}, {text: "สยองขวัญ"}] },
+    { q: "คุณใช้เวลาว่างบนโซเชียลมีเดียอย่างไร?", choices: [{text: "ดูวิดีโอ/คลิปสั้น"}, {text: "อัปเดตรูปภาพ/สถานะ"}, {text: "ติดตามข่าวสาร"}, {text: "เล่นเกมในแอป"}] },
+    { q: "คุณอยากมีสัตว์เลี้ยงประเภทไหน?", choices: [{text: "สุนัข"}, {text: "แมว"}, {text: "นก"}, {text: "ปลา"}] },
+    { q: "ถ้ามีเงินเหลือ คุณจะเอาไปทำอะไร?", choices: [{text: "ซื้อของที่อยากได้"}, {text: "เก็บออม/ลงทุน"}, {text: "ท่องเที่ยว"}, {text: "แบ่งให้คนอื่น"}] },
+    { q: "การไปเที่ยวในอุดมคติของคุณคือ?", choices: [{text: "สบายๆ ไม่รีบร้อน"}, {text: "ผจญภัย"}, {text: "เข้าถึงธรรมชาติ"}, {text: "ใช้ชีวิตในเมือง"}] },
+    { q: "คุณชอบอ่านหนังสือแนวไหน?", choices: [{text: "นิยาย"}, {text: "สารคดี"}, {text: "วรรณกรรม"}, {text: "การ์ตูน"}] },
+    { q: "ถ้ามีเวลา 1 ชั่วโมง คุณจะทำอะไร?", choices: [{text: "งีบหลับ"}, {text: "ทำความสะอาดห้อง"}, {text: "ออกไปเดินเล่น"}, {text: "เล่นมือถือ"}] },
+    { q: "คุณชอบอากาศแบบไหน?", choices: [{text: "แดดออก"}, {text: "ฝนตก"}, {text: "มีลมเย็นๆ"}, {text: "มีเมฆมาก"}] },
+    { q: "คุณชอบกินอาหารเช้าแบบไหน?", choices: [{text: "ซีเรียล/ขนมปัง"}, {text: "ข้าวต้ม/โจ๊ก"}, {text: "ไข่ดาว/ไส้กรอก"}, {text: "อาหารตามสั่ง"}] },
+    { q: "คุณชอบแต่งตัวสไตล์ไหน?", choices: [{text: "เสื้อยืดกางเกงยีนส์"}, {text: "แฟชั่นทันสมัย"}, {text: "ชุดเดรส/กระโปรง"}, {text: "เสื้อผ้าสปอร์ต"}] },
+    { q: "คุณชอบดื่มชาอะไร?", choices: [{text: "ชาเขียว"}, {text: "ชาไทย"}, {text: "ชาดำ"}, {text: "ชาผลไม้"}] },
+    { q: "คุณชอบของหวานอะไร?", choices: [{text: "เค้ก"}, {text: "ไอศกรีม"}, {text: "ช็อกโกแลต"}, {text: "บิงซู"}] },
+    { q: "คุณชอบการให้ของขวัญแบบไหน?", choices: [{text: "ของทำมือ"}, {text: "ของที่มีมูลค่า"}, {text: "ของที่ใช้ประโยชน์ได้"}, {text: "ประสบการณ์"}] },
+    { q: "คุณชอบเล่นเกมประเภทไหน?", choices: [{text: "แอคชั่น/ผจญภัย"}, {text: "ปริศนา/สมอง"}, {text: "จำลองชีวิต"}, {text: "กีฬา/แข่งรถ"}] },
+    { q: "คุณชอบทำกิจกรรมอะไรตอนกลางคืน?", choices: [{text: "ดูหนัง/ซีรีส์"}, {text: "ฟังเพลง"}, {text: "ออกไปข้างนอก"}, {text: "นอนพักผ่อน"}] },
+    { q: "คุณชอบทำงานที่ไหน?", choices: [{text: "ที่ทำงาน"}, {text: "ที่บ้าน"}, {text: "ร้านกาแฟ"}, {text: "ที่ไหนก็ได้"}] },
+    { q: "คุณชอบเรียนรู้อะไรใหม่ๆ?", choices: [{text: "ภาษา"}, {text: "ทักษะด้านศิลปะ"}, {text: "ทักษะด้านการทำอาหาร"}, {text: "ทักษะด้านเทคโนโลยี"}] },
+    { q: "คุณชอบไปเที่ยวกับใคร?", choices: [{text: "คนรัก"}, {text: "เพื่อน"}, {text: "ครอบครัว"}, {text: "คนเดียว"}] },
+    { q: "คุณชอบกินขนมปังแบบไหน?", choices: [{text: "ขนมปังปิ้ง"}, {text: "ครัวซองต์"}, {text: "ขนมปังไส้กรอก"}, {text: "ขนมปังแฮมชีส"}] },
+    { q: "คุณชอบทำอาหารหรือไม่?", choices: [{text: "ชอบมาก"}, {text: "ชอบพอประมาณ"}, {text: "ไม่ชอบทำ"}, {text: "ชอบแค่บางเมนู"}] },
+    { q: "คุณชอบเดินทางด้วยอะไร?", choices: [{text: "รถไฟ"}, {text: "รถยนต์"}, {text: "เครื่องบิน"}, {text: "เรือ"}] },
+    { q: "คุณชอบฟังเพลงประเภทไหน?", choices: [{text: "ป๊อป"}, {text: "ร็อก"}, {text: "ฮิปฮอป"}, {text: "อินดี้"}] },
+    { q: "คุณอยากมีบ้านแบบไหน?", choices: [{text: "บ้านเดี่ยว"}, {text: "คอนโด"}, {text: "ทาวน์เฮาส์"}, {text: "อพาร์ตเมนต์"}] },
+    { q: "คุณชอบทำกิจกรรมกลางแจ้งหรือไม่?", choices: [{text: "ชอบมาก"}, {text: "ชอบพอประมาณ"}, {text: "ไม่ชอบเลย"}, {text: "ชอบแค่บางกิจกรรม"}] },
+    { q: "คุณชอบกินอาหารประเภทไหน?", choices: [{text: "อาหารไทย"}, {text: "อาหารญี่ปุ่น"}, {text: "อาหารตะวันตก"}, {text: "อาหารเกาหลี"}] },
+    { q: "คุณชอบการสื่อสารแบบไหน?", choices: [{text: "คุยกันตัวต่อตัว"}, {text: "คุยผ่านโทรศัพท์"}, {text: "แชท/ข้อความ"}, {text: "วิดีโอคอล"}] },
+    { q: "คุณชอบทำกิจกรรมผ่อนคลายแบบไหน?", choices: [{text: "ดูหนัง"}, {text: "ฟังเพลง"}, {text: "อ่านหนังสือ"}, {text: "นวดสปา"}] },
+    { q: "คุณชอบวันหยุดยาวแบบไหน?", choices: [{text: "ไปเที่ยว"}, {text: "พักผ่อนอยู่บ้าน"}, {text: "ไปเยี่ยมญาติ"}, {text: "ทำงานอดิเรก"}] },
+    { q: "คุณชอบกินกาแฟอะไร?", choices: [{text: "ลาเต้"}, {text: "อเมริกาโน่"}, {text: "คาปูชิโน่"}, {text: "มอคค่า"}] },
+    { q: "คุณชอบดูละครประเภทไหน?", choices: [{text: "ละครไทย"}, {text: "ซีรีส์ฝรั่ง"}, {text: "ซีรีส์เกาหลี"}, {text: "ซีรีส์ญี่ปุ่น"}] },
+    { q: "คุณชอบออกกำลังกายตอนไหน?", choices: [{text: "ตอนเช้า"}, {text: "ตอนบ่าย"}, {text: "ตอนเย็น"}, {text: "ตอนดึก"}] },
+    { q: "คุณชอบกินเนื้อสัตว์อะไร?", choices: [{text: "เนื้อหมู"}, {text: "เนื้อไก่"}, {text: "เนื้อวัว"}, {text: "ปลา"}] },
+    { q: "คุณชอบท่องเที่ยวแบบไหน?", choices: [{text: "วางแผนอย่างละเอียด"}, {text: "ไปแบบไม่มีแผน"}, {text: "ตามใจเพื่อน"}, {text: "ตามใจแฟน"}] },
+    { q: "คุณชอบงานอดิเรกอะไร?", choices: [{text: "วาดรูป"}, {text: "เล่นดนตรี"}, {text: "ทำสวน"}, {text: "ทำอาหาร"}] },
+    { q: "คุณชอบช้อปปิ้งที่ไหน?", choices: [{text: "ห้างสรรพสินค้า"}, {text: "ตลาดนัด"}, {text: "ร้านค้าออนไลน์"}, {text: "ร้านมือสอง"}] },
+    { q: "คุณชอบใช้เวลาช่วงไหนของวัน?", choices: [{text: "เช้า"}, {text: "บ่าย"}, {text: "เย็น"}, {text: "กลางคืน"}] },
+    { q: "คุณชอบกินผลไม้รสชาติแบบไหน?", choices: [{text: "หวาน"}, {text: "เปรี้ยว"}, {text: "มัน"}, {text: "เผ็ด"}] },
+    { q: "คุณชอบฤดูร้อนเพราะอะไร?", choices: [{text: "ไปเที่ยวทะเล"}, {text: "เล่นน้ำ"}, {text: "ใส่เสื้อผ้าสบายๆ"}, {text: "ไม่มีฝน"}] },
+    { q: "คุณชอบฤดูฝนเพราะอะไร?", choices: [{text: "อากาศเย็นสบาย"}, {text: "ดูหนังอยู่บ้าน"}, {text: "บรรยากาศเหงาๆ"}, {text: "สีเขียวของต้นไม้"}] },
+    { q: "คุณชอบฤดูหนาวเพราะอะไร?", choices: [{text: "อากาศเย็นสบาย"}, {text: "ใส่เสื้อผ้าสวยๆ"}, {text: "ไปเที่ยวภูเขา"}, {text: "บรรยากาศดี"}] },
+    { q: "คุณชอบทำอาหารอะไร?", choices: [{text: "อาหารไทย"}, {text: "อาหารอิตาเลียน"}, {text: "อาหารญี่ปุ่น"}, {text: "อาหารเกาหลี"}] },
+    { q: "คุณชอบสัตว์อะไร?", choices: [{text: "สุนัข"}, {text: "แมว"}, {text: "กระต่าย"}, {text: "นก"}] },
+    { q: "คุณชอบไปเที่ยวที่ไหนมากที่สุด?", choices: [{text: "ทะเล"}, {text: "ภูเขา"}, {text: "เมืองใหญ่"}, {text: "ป่า"}] },
+    { q: "คุณชอบดูภาพยนตร์ประเภทไหน?", choices: [{text: "แอคชั่น"}, {text: "โรแมนติก"}, {text: "คอมเมดี้"}, {text: "ดราม่า"}] },
+    { q: "คุณชอบกินพิซซ่าหน้าอะไร?", choices: [{text: "ฮาวายเอี้ยน"}, {text: "ซีฟู้ด"}, {text: "ชีส"}, {text: "เปปเปอโรนี"}] },
+    { q: "คุณชอบกินไอศกรีมรสอะไร?", choices: [{text: "ช็อกโกแลต"}, {text: "วานิลลา"}, {text: "สตรอว์เบอร์รี"}, {text: "ชาเขียว"}] },
+    { q: "คุณชอบฟังเพลงแนวไหน?", choices: [{text: "ป๊อป"}, {text: "ร็อก"}, {text: "แจ๊ส"}, {text: "คลาสสิก"}] },
+    { q: "คุณชอบไปเที่ยวกับใคร?", choices: [{text: "เพื่อน"}, {text: "ครอบครัว"}, {text: "คนรัก"}, {text: "คนเดียว"}] },
+    { q: "คุณชอบเล่นเกมบนแพลตฟอร์มไหน?", choices: [{text: "คอมพิวเตอร์"}, {text: "มือถือ"}, {text: "คอนโซล"}, {text: "บอร์ดเกม"}] },
+    { q: "คุณชอบกินผลไม้รสชาติแบบไหน?", choices: [{text: "หวาน"}, {text: "เปรี้ยว"}, {text: "มัน"}, {text: "จืด"}] },
+    { q: "คุณชอบกินอาหารประเภทไหน?", choices: [{text: "อาหารไทย"}, {text: "อาหารจีน"}, {text: "อาหารญี่ปุ่น"}, {text: "อาหารฝรั่ง"}] },
+    { q: "คุณชอบฤดูอะไรที่สุด?", choices: [{text: "ร้อน"}, {text: "ฝน"}, {text: "หนาว"}, {text: "ไม่ชอบสักฤดู"}] },
+    { q: "คุณชอบไปเที่ยวที่ไหน?", choices: [{text: "ในประเทศ"}, {text: "ต่างประเทศ"}, {text: "ในจังหวัด"}, {text: "ในอำเภอ"}] },
+    { q: "คุณชอบกินอาหารเช้าแบบไหน?", choices: [{text: "ข้าวต้ม"}, {text: "โจ๊ก"}, {text: "ไข่"}, {text: "ขนมปัง"}] },
+    { q: "คุณชอบดื่มเครื่องดื่มอะไร?", choices: [{text: "น้ำเปล่า"}, {text: "น้ำผลไม้"}, {text: "กาแฟ"}, {text: "ชา"}] },
+    { q: "คุณชอบกินขนมปังแบบไหน?", choices: [{text: "ขนมปังปิ้ง"}, {text: "ขนมปังนึ่ง"}, {text: "ขนมปังอบ"}, {text: "ขนมปังทอด"}] },
+    { q: "คุณชอบดูภาพยนตร์แนวไหน?", choices: [{text: "ตลก"}, {text: "สยองขวัญ"}, {text: "แอคชั่น"}, {text: "โรแมนติก"}] },
+    { q: "คุณชอบทำกิจกรรมอะไรในวันหยุด?", choices: [{text: "นอน"}, {text: "ดูหนัง"}, {text: "อ่านหนังสือ"}, {text: "ไปเที่ยว"}] },
+    { q: "คุณชอบแต่งตัวสไตล์ไหน?", choices: [{text: "ลำลอง"}, {text: "ทางการ"}, {text: "แฟชั่น"}, {text: "สปอร์ต"}] },
+    { q: "คุณชอบอ่านหนังสือประเภทไหน?", choices: [{text: "นิยาย"}, {text: "สารคดี"}, {text: "การ์ตูน"}, {text: "นิตยสาร"}] },
+    { q: "คุณชอบทำงานที่ไหน?", choices: [{text: "ที่ทำงาน"}, {text: "ที่บ้าน"}, {text: "ร้านกาแฟ"}, {text: "ห้องสมุด"}] },
+    { q: "คุณชอบเพลงแนวไหน?", choices: [{text: "ป๊อป"}, {text: "ร็อก"}, {text: "ฮิปฮอป"}, {text: "อินดี้"}] },
+    { q: "คุณชอบกินอาหารอะไร?", choices: [{text: "อาหารเผ็ด"}, {text: "อาหารจืด"}, {text: "อาหารหวาน"}, {text: "อาหารเค็ม"}] },
+    { q: "คุณชอบดูซีรีส์แนวไหน?", choices: [{text: "ตลก"}, {text: "ดราม่า"}, {text: "แอคชั่น"}, {text: "แฟนตาซี"}] },
+    { q: "คุณชอบกินขนมหวานอะไร?", choices: [{text: "เค้ก"}, {text: "ไอศกรีม"}, {text: "ขนมปัง"}, {text: "ช็อกโกแลต"}] },
+    { q: "คุณชอบดูหนังในโรงภาพยนตร์หรือที่บ้าน?", choices: [{text: "โรงภาพยนตร์"}, {text: "ที่บ้าน"}, {text: "แล้วแต่โอกาส"}, {text: "ไม่ชอบดูหนัง"}] },
+    { q: "คุณชอบฤดูร้อนเพราะอะไร?", choices: [{text: "ไปเที่ยวทะเล"}, {text: "เล่นน้ำ"}, {text: "อากาศสดใส"}, {text: "ไม่มีฝน"}] },
+    { q: "คุณชอบฤดูฝนเพราะอะไร?", choices: [{text: "อากาศเย็นสบาย"}, {text: "บรรยากาศโรแมนติก"}, {text: "สีเขียวของธรรมชาติ"}, {text: "นอนดูหนังอยู่บ้าน"}] },
+    { q: "คุณชอบฤดูหนาวเพราะอะไร?", choices: [{text: "อากาศเย็นสบาย"}, {text: "ใส่เสื้อผ้าสวยๆ"}, {text: "ไปเที่ยวภูเขา"}, {text: "บรรยากาศอบอุ่น"}] },
+    { q: "คุณชอบกินผลไม้อะไร?", choices: [{text: "ทุเรียน"}, {text: "มะม่วง"}, {text: "สตรอว์เบอร์รี"}, {text: "แตงโม"}] },
+    { q: "คุณชอบกินขนมขบเคี้ยวอะไร?", choices: [{text: "มันฝรั่งทอด"}, {text: "ข้าวโพดคั่ว"}, {text: "ขนมปังกรอบ"}, {text: "ถั่ว"}] },
+    { q: "คุณชอบการเดินทางแบบไหน?", choices: [{text: "เดินทางด้วยรถยนต์"}, {text: "เดินทางด้วยรถไฟ"}, {text: "เดินทางด้วยเครื่องบิน"}, {text: "เดินเท้า"}] },
+    { q: "คุณชอบกินอาหารเช้าอะไร?", choices: [{text: "ขนมปัง"}, {text: "ข้าวต้ม"}, {text: "โจ๊ก"}, {text: "ไข่ดาว"}] },
+    { q: "คุณชอบดื่มเครื่องดื่มอะไร?", choices: [{text: "กาแฟ"}, {text: "ชา"}, {text: "น้ำผลไม้"}, {text: "น้ำอัดลม"}] },
+    { q: "คุณชอบไปเที่ยวที่ไหน?", choices: [{text: "ทะเล"}, {text: "ภูเขา"}, {text: "เมืองใหญ่"}, {text: "ป่า"}] },
+    { q: "คุณชอบใช้เวลาว่างกับใคร?", choices: [{text: "เพื่อน"}, {text: "ครอบครัว"}, {text: "คนรัก"}, {text: "คนเดียว"}] },
+    { q: "คุณชอบทำอาหารอะไร?", choices: [{text: "อาหารไทย"}, {text: "อาหารฝรั่ง"}, {text: "อาหารญี่ปุ่น"}, {text: "อาหารเกาหลี"}] },
+    { q: "คุณชอบดูภาพยนตร์แนวไหน?", choices: [{text: "ตลก"}, {text: "สยองขวัญ"}, {text: "แอคชั่น"}, {text: "โรแมนติก"}] },
+    { q: "คุณชอบทำงานอดิเรกอะไร?", choices: [{text: "ทำอาหาร"}, {text: "อ่านหนังสือ"}, {text: "ดูหนัง"}, {text: "เล่นเกม"}] },
+    { q: "คุณชอบการให้ของขวัญแบบไหน?", choices: [{text: "ของทำมือ"}, {text: "ของที่มีมูลค่า"}, {text: "ของที่ใช้ประโยชน์ได้จริง"}, {text: "ประสบการณ์"}] },
+    { q: "คุณชอบการเดินทางแบบไหน?", choices: [{text: "ไปคนเดียว"}, {text: "ไปกับเพื่อน"}, {text: "ไปกับครอบครัว"}, {text: "ไปกับคนรัก"}] },
+    { q: "คุณชอบดูหนังในโรงภาพยนตร์หรือที่บ้าน?", choices: [{text: "โรงภาพยนตร์"}, {text: "ที่บ้าน"}, {text: "แล้วแต่โอกาส"}, {text: "ไม่ชอบดูหนังเลย"}] },
+    { q: "คุณชอบฤดูร้อนเพราะอะไร?", choices: [{text: "ไปเที่ยวทะเล"}, {text: "เล่นน้ำ"}, {text: "อากาศสดใส"}, {text: "ไม่มีฝน"}] },
+    { q: "คุณชอบฤดูฝนเพราะอะไร?", choices: [{text: "อากาศเย็นสบาย"}, {text: "บรรยากาศโรแมนติก"}, {text: "สีเขียวของธรรมชาติ"}, {text: "นอนดูหนังอยู่บ้าน"}] },
+    { q: "คุณชอบฤดูหนาวเพราะอะไร?", choices: [{text: "อากาศเย็นสบาย"}, {text: "ใส่เสื้อผ้าสวยๆ"}, {text: "ไปเที่ยวภูเขา"}, {text: "บรรยากาศอบอุ่น"}] },
+    { q: "คุณชอบกินอาหารอะไร?", choices: [{text: "อาหารเผ็ด"}, {text: "อาหารจืด"}, {text: "อาหารหวาน"}, {text: "อาหารเค็ม"}] },
+    { q: "คุณชอบดูซีรีส์แนวไหน?", choices: [{text: "ตลก"}, {text: "ดราม่า"}, {text: "แอคชั่น"}, {text: "แฟนตาซี"}] },
+    { q: "คุณชอบกินขนมหวานอะไร?", choices: [{text: "เค้ก"}, {text: "ไอศกรีม"}, {text: "ขนมปัง"}, {text: "ช็อกโกแลต"}] },
+    { q: "คุณชอบฟังเพลงแนวไหน?", choices: [{text: "ป๊อป"}, {text: "ร็อก"}, {text: "แจ๊ส"}, {text: "คลาสสิก"}] },
+    { q: "คุณชอบไปเที่ยวกับใคร?", choices: [{text: "เพื่อน"}, {text: "ครอบครัว"}, {text: "คนรัก"}, {text: "คนเดียว"}] },
+    { q: "คุณชอบเล่นเกมบนแพลตฟอร์มไหน?", choices: [{text: "คอมพิวเตอร์"}, {text: "มือถือ"}, {text: "คอนโซล"}, {text: "บอร์ดเกม"}] },
+    { q: "คุณชอบกินผลไม้รสชาติแบบไหน?", choices: [{text: "หวาน"}, {text: "เปรี้ยว"}, {text: "มัน"}, {text: "จืด"}] },
+    { q: "คุณชอบกินอาหารประเภทไหน?", choices: [{text: "อาหารไทย"}, {text: "อาหารจีน"}, {text: "อาหารญี่ปุ่น"}, {text: "อาหารฝรั่ง"}] },
+    { q: "คุณชอบฤดูอะไรที่สุด?", choices: [{text: "ร้อน"}, {text: "ฝน"}, {text: "หนาว"}, {text: "ไม่ชอบสักฤดู"}] },
+    { q: "คุณชอบไปเที่ยวที่ไหน?", choices: [{text: "ในประเทศ"}, {text: "ต่างประเทศ"}, {text: "ในจังหวัด"}, {text: "ในอำเภอ"}] },
+    { q: "คุณชอบกินอาหารเช้าแบบไหน?", choices: [{text: "ข้าวต้ม"}, {text: "โจ๊ก"}, {text: "ไข่"}, {text: "ขนมปัง"}] },
+    { q: "คุณชอบดื่มเครื่องดื่มอะไร?", choices: [{text: "น้ำเปล่า"}, {text: "น้ำผลไม้"}, {text: "กาแฟ"}, {text: "ชา"}] },
+    { q: "คุณชอบกินขนมปังแบบไหน?", choices: [{text: "ขนมปังปิ้ง"}, {text: "ขนมปังนึ่ง"}, {text: "ขนมปังอบ"}, {text: "ขนมปังทอด"}] },
+    { q: "คุณชอบดูภาพยนตร์แนวไหน?", choices: [{text: "ตลก"}, {text: "สยองขวัญ"}, {text: "แอคชั่น"}, {text: "โรแมนติก"}] },
+    { q: "คุณชอบทำกิจกรรมอะไรในวันหยุด?", choices: [{text: "นอน"}, {text: "ดูหนัง"}, {text: "อ่านหนังสือ"}, {text: "ไปเที่ยว"}] },
+    { q: "คุณชอบแต่งตัวสไตล์ไหน?", choices: [{text: "ลำลอง"}, {text: "ทางการ"}, {text: "แฟชั่น"}, {text: "สปอร์ต"}] },
+    { q: "คุณชอบอ่านหนังสือประเภทไหน?", choices: [{text: "นิยาย"}, {text: "สารคดี"}, {text: "การ์ตูน"}, {text: "นิตยสาร"}] }
+];
+
+const captions = [
+    { score: 0, text: "ไม่ตรงกันเลย ต้องทำความรู้จักกันใหม่แล้วนะเนี่ย" },
+    { score: 1, text: "ทายถูก 1 ข้อ ยังมีโอกาสอีกเยอะเลยนะ" },
+    { score: 2, text: "ทายถูก 2 ข้อ เริ่มจะพอรู้ใจกันแล้ว" },
+    { score: 3, text: "ทายถูก 3 ข้อ เก่งมาก คุณเริ่มรู้ใจเขาหรือเธอแล้วนะ" },
+    { score: 4, text: "ทายถูก 4 ข้อ ว้าว อีกนิดเดียวก็รู้ใจกันหมดแล้ว" },
+    { score: 5, text: "ทายถูก 5 ข้อ ไม่น่าเชื่อ นี่คือคนในใจตัวจริง" }
+];
+
+// DOM elements
+const introScreen = document.getElementById('intro-screen');
+const gameArea = document.getElementById('game-area');
+const player2Intro = document.getElementById('player2-intro');
+const resultArea = document.getElementById('result-area');
+const questionNumberSpan = document.getElementById('question-number');
+const choicesContainer = document.getElementById('choices-container');
+const phaseTitle = document.getElementById('phase-title');
+const questionBox = document.querySelector('.question-box');
+const resultContainer = document.getElementById('result-container');
+const captionDiv = document.getElementById('caption');
+const restartBtn = document.getElementById('restart-btn');
+const backHomeBtn = document.getElementById('back-home-btn');
+const backHomeIntroBtn = document.getElementById('back-home-intro-btn'); // New element
+const startBtn = document.getElementById('start-btn');
+const startP2Btn = document.getElementById('start-p2-btn');
+const volUpBtn = document.getElementById('vol-up');
+const volDownBtn = document.getElementById('vol-down');
+const toggleMusicBtn = document.getElementById('toggle-music');
+const gameMusic = document.getElementById('game-music');
+const clickSound = document.getElementById('click-sound');
+const revealSound = document.getElementById('reveal-sound');
+const scoreSounds = {
+    0: document.getElementById('score-0-sound'),
+    1: document.getElementById('score-1-sound'),
+    2: document.getElementById('score-2-sound'),
+    3: document.getElementById('score-3-sound'),
+    4: document.getElementById('score-4-sound'),
+    5: document.getElementById('score-5-sound')
+};
+
+// Game state
+let currentQuestions = [];
+let player1Answers = [];
+let player2Answers = [];
+let currentQuestionIndex = 0;
+let isPlayer1Turn = true;
+const NUM_QUESTIONS = 5;
+const usedQuestions = new Set();
+let allQuestionsCopy = [...allQuestions];
+let isMusicPlaying = false;
+
+// Text-to-Speech (TTS)
+const tts = window.speechSynthesis;
+
+function speak(text) {
+    if (tts.speaking) {
+        tts.cancel();
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'th-TH';
+    tts.speak(utterance);
+}
+
+// Utility functions
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function selectUniqueQuestions() {
+    const availableQuestions = allQuestionsCopy.filter((_, index) => !usedQuestions.has(index));
+    shuffleArray(availableQuestions);
+    const selectedQuestions = availableQuestions.slice(0, NUM_QUESTIONS);
+    
+    selectedQuestions.forEach(q => {
+        const originalIndex = allQuestions.findIndex(originalQ => originalQ.q === q.q);
+        if (originalIndex !== -1) {
+            usedQuestions.add(originalIndex);
+        }
+    });
+
+    if (usedQuestions.size >= allQuestions.length) {
+        usedQuestions.clear();
+    }
+
+    return selectedQuestions;
+}
+
+function startGame() {
+    introScreen.classList.add('hidden');
+    gameArea.classList.remove('hidden');
+    isPlayer1Turn = true;
+    currentQuestionIndex = 0;
+    player1Answers = [];
+    player2Answers = [];
+    resultArea.classList.add('hidden');
+    player2Intro.classList.add('hidden');
+    phaseTitle.textContent = "ผู้เล่นคนที่ 1: ตอบคำถาม";
+
+    currentQuestions = selectUniqueQuestions();
+    
+    choicesContainer.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+        const button = document.createElement('button');
+        button.id = `choice-${i + 1}`;
+        choicesContainer.appendChild(button);
+    }
+    
+    // Announce start of Player 1's turn
+    speak("ผู้เล่นคนที่ 1: ตอบคำถาม");
+    loadQuestion();
+    if (!isMusicPlaying) {
+        toggleMusic();
+    }
+}
+
+function loadQuestion() {
+    if (currentQuestionIndex >= NUM_QUESTIONS) {
+        if (isPlayer1Turn) {
+            endPlayer1Turn();
+        } else {
+            showResults();
+        }
+        return;
+    }
+
+    questionNumberSpan.textContent = currentQuestionIndex + 1;
+    const { q, choices } = currentQuestions[currentQuestionIndex];
+    
+    let displayQuestion = q;
+    if (!isPlayer1Turn) {
+        displayQuestion = displayQuestion.replace("คุณชอบ", "คุณคิดว่าเขาจะ");
+        displayQuestion = displayQuestion.replace("คุณอยากมี", "คุณคิดว่าเขาอยากมี");
+        displayQuestion = displayQuestion.replace("คุณใช้", "คุณคิดว่าเขาใช้");
+    }
+    questionBox.textContent = displayQuestion;
+    
+    // Speak the question
+    speak(displayQuestion);
+
+    const shuffledChoices = [...choices];
+    shuffleArray(shuffledChoices);
+
+    const choiceBtns = choicesContainer.querySelectorAll('button');
+    choiceBtns.forEach((btn, index) => {
+        const choiceData = shuffledChoices[index];
+        btn.textContent = choiceData.text;
+        
+        // Add image if available
+        btn.classList.remove('with-image');
+        btn.innerHTML = '';
+        if (choiceData.image) {
+            const img = document.createElement('img');
+            img.src = choiceData.image;
+            img.alt = choiceData.text;
+            btn.appendChild(img);
+            btn.classList.add('with-image');
+        }
+        
+        const textNode = document.createTextNode(choiceData.text);
+        btn.appendChild(textNode);
+        
+        btn.onclick = () => handleChoice(choiceData.text);
+        
+        // Speak the choices
+        speak(`ตัวเลือกที่ ${index + 1} คือ ${choiceData.text}`);
+    });
+}
+
+function handleChoice(choice) {
+    try { clickSound.play(); } catch (e) {}
+    
+    if (isPlayer1Turn) {
+        player1Answers.push(choice);
+    } else {
+        player2Answers.push(choice);
+    }
+
+    currentQuestionIndex++;
+    setTimeout(loadQuestion, 500); 
+}
+
+function endPlayer1Turn() {
+    isPlayer1Turn = false;
+    currentQuestionIndex = 0;
+    gameArea.classList.add('hidden');
+    player2Intro.classList.remove('hidden');
+    
+    // Announce Player 2's turn
+    speak("ได้เวลาทายใจ ยื่นโทรศัพท์ให้ผู้เล่นคนที่ 2 เพื่อทายว่าเขาหรือเธอเลือกอะไรไปบ้าง");
+}
+
+function endPlayer2Intro() {
+    player2Intro.classList.add('hidden');
+    gameArea.classList.remove('hidden');
+    phaseTitle.textContent = "ผู้เล่นคนที่ 2: ทายว่าเขาหรือเธอจะเลือกอะไร";
+    
+    // Announce Player 2's turn
+    speak("ผู้เล่นคนที่ 2: ทายว่าเขาหรือเธอจะเลือกอะไร");
+    loadQuestion();
+}
+
+function showResults() {
+    try { gameMusic.pause(); } catch (e) {}
+    try { revealSound.play(); } catch (e) {}
+    gameArea.classList.add('hidden');
+    resultArea.classList.remove('hidden');
+
+    let correctGuesses = 0;
+    for (let i = 0; i < NUM_QUESTIONS; i++) {
+        if (player1Answers[i] === player2Answers[i]) {
+            correctGuesses++;
+        }
+    }
+
+    const resultText = `คุณทายใจได้ตรงกับเขาหรือเธอ ${correctGuesses} ข้อ จาก ${NUM_QUESTIONS} ข้อ`;
+    resultContainer.textContent = resultText;
+    
+    const selectedCaption = captions.find(c => c.score === correctGuesses) || captions[0];
+    captionDiv.textContent = selectedCaption.text;
+
+    // Speak the results
+    speak(resultText + " " + selectedCaption.text);
+
+    // Play sound based on score
+    if (scoreSounds[correctGuesses]) {
+        try { scoreSounds[correctGuesses].play(); } catch (e) {}
+    }
+}
+
+// Audio controls
+let currentVolume = 0.5;
+function setAllAudioVolume(volume) {
+    const sounds = [gameMusic, clickSound, revealSound];
+    for (let i = 0; i <= 5; i++) {
+        sounds.push(scoreSounds[i]);
+    }
+
+    sounds.forEach(sound => {
+        if (sound) {
+            sound.volume = Math.max(0, Math.min(1, volume));
+        }
+    });
+}
+
+function toggleMusic() {
+    if (gameMusic.paused) {
+        gameMusic.play().then(() => {
+            isMusicPlaying = true;
+            toggleMusicBtn.textContent = 'ปิดเพลง';
+        }).catch(error => {
+            console.error("Autoplay was prevented:", error);
+        });
+    } else {
+        gameMusic.pause();
+        isMusicPlaying = false;
+        toggleMusicBtn.textContent = 'เปิดเพลง';
+    }
+}
+
+volUpBtn.addEventListener('click', () => {
+    currentVolume += 0.1;
+    setAllAudioVolume(currentVolume);
+});
+
+volDownBtn.addEventListener('click', () => {
+    currentVolume -= 0.1;
+    setAllAudioVolume(currentVolume);
+});
+
+toggleMusicBtn.addEventListener('click', toggleMusic);
+
+// Event listeners
+startBtn.addEventListener('click', startGame);
+startP2Btn.addEventListener('click', endPlayer2Intro);
+restartBtn.addEventListener('click', () => {
+    introScreen.classList.remove('hidden');
+    gameArea.classList.add('hidden');
+    resultArea.classList.add('hidden');
+    player2Intro.classList.add('hidden');
+    if (isMusicPlaying) {
+        toggleMusic(); // Stop music when restarting to intro screen
+    }
+    
+    // Announce intro screen text
+    speak(document.getElementById('intro-description').textContent);
+});
+
+// New event listener for the intro screen button
+backHomeIntroBtn.addEventListener('click', () => {
+    window.location.href = 'index.html'; // Redirect to index.html
+});
+
+// Existing event listener for the result screen button
+backHomeBtn.addEventListener('click', () => {
+    window.location.href = 'index.html'; // Redirect to index.html
+});
+
+
+// Initialize volume and announce intro screen text
+setAllAudioVolume(currentVolume);
+window.addEventListener('load', () => {
+    speak(document.getElementById('intro-description').textContent);
+});
+</script>
+
+</body>
+</html>
