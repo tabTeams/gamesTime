@@ -184,14 +184,24 @@ button:disabled {
 </div>
 
 <audio id="bgMusic1" src="Mission1.ogg" loop></audio>
+<audio id="bgMusic2" src="Mission2.ogg" loop></audio>
 <audio id="successSound" src="correct.ogg"></audio>
 <audio id="failSound" src="wrong.ogg"></audio>
+<audio id="heavyBreathingSound" src="heavy_breathing.ogg"></audio>
+<audio id="heartbeatSound" src="HEART BEAT.ogg" loop></audio>
 <audio id="missionCompleteSound" src="victory.ogg"></audio>
 <audio id="gameOverSound" src="failure.ogg"></audio>
 <audio id="keyUnlockSound" src="key_unlock.ogg"></audio>
 <audio id="buttonPressSound" src="button_press.ogg"></audio>
 <audio id="doorOpenSound" src="door_open.ogg"></audio>
 <audio id="runningStairsSound" src="running_stairs.ogg"></audio>
+<audio id="scoreSound" src="score_5.ogg"></audio>
+<audio id="thankSound" src="thank.ogg"></audio>
+<audio id="openCarSound" src="openCar.ogg"></audio>
+<audio id="closeCarSound" src="closeCar.ogg"></audio>
+<audio id="startCarSound" src="startCar.ogg"></audio>
+<audio id="roadSound" src="Road.ogg"></audio>
+<audio id="successMission2Sound" src="Success mission2.ogg"></audio>
 
 <script>
 const introScreen = document.getElementById('introScreen');
@@ -207,21 +217,32 @@ const choicesDiv = document.getElementById('choices');
 const resultMessage = document.getElementById('resultMessage');
 const restartBtn = document.getElementById('restartBtn');
 const volumeSlider = document.getElementById('volumeSlider');
+
 const bgMusic1 = document.getElementById('bgMusic1');
+const bgMusic2 = document.getElementById('bgMusic2');
 const successSound = document.getElementById('successSound');
 const failSound = document.getElementById('failSound');
+const heavyBreathingSound = document.getElementById('heavyBreathingSound');
+const heartbeatSound = document.getElementById('heartbeatSound');
 const missionCompleteSound = document.getElementById('missionCompleteSound');
 const gameOverSound = document.getElementById('gameOverSound');
 const keyUnlockSound = document.getElementById('keyUnlockSound');
-const buttonPressSound = document.getElementById('button_press.ogg');
-const doorOpenSound = document.getElementById('door_open.ogg');
-const runningStairsSound = document.getElementById('running_stairs.ogg');
+const buttonPressSound = document.getElementById('buttonPressSound');
+const doorOpenSound = document.getElementById('doorOpenSound');
+const runningStairsSound = document.getElementById('runningStairsSound');
+const scoreSound = document.getElementById('scoreSound');
+const thankSound = document.getElementById('thankSound');
+const openCarSound = document.getElementById('openCarSound');
+const closeCarSound = document.getElementById('closeCarSound');
+const startCarSound = document.getElementById('startCarSound');
+const roadSound = document.getElementById('roadSound');
+const successMission2Sound = document.getElementById('successMission2Sound');
 
 let currentLevel = 0;
 let timer;
 let timeLeft;
 const maxLevels = 20;
-let extraTime = 0; // เพิ่มตัวแปรสำหรับเวลาที่เหลือ
+let extraTime = 0;
 const maxIncorrectAttempts = 3;
 let incorrectAttemptsInLevel = 0;
 
@@ -229,20 +250,32 @@ let missionData = [];
 
 // กำหนดค่าความดังเริ่มต้นสำหรับเสียงดนตรีประกอบและเสียงเอฟเฟกต์
 if(bgMusic1) bgMusic1.volume = 0.1;
+if(bgMusic2) bgMusic2.volume = 0.1;
 if(successSound) successSound.volume = 1.0;
 if(failSound) failSound.volume = 1.0;
+if(heavyBreathingSound) heavyBreathingSound.volume = 1.0;
+if(heartbeatSound) heartbeatSound.volume = 1.0;
 if(missionCompleteSound) missionCompleteSound.volume = 1.0;
 if(gameOverSound) gameOverSound.volume = 1.0;
 if(keyUnlockSound) keyUnlockSound.volume = 1.0;
 if(buttonPressSound) buttonPressSound.volume = 1.0;
 if(doorOpenSound) doorOpenSound.volume = 1.0;
 if(runningStairsSound) runningStairsSound.volume = 1.0;
+if(scoreSound) scoreSound.volume = 1.0;
+if(thankSound) thankSound.volume = 1.0;
+if(openCarSound) openCarSound.volume = 1.0;
+if(closeCarSound) closeCarSound.volume = 1.0;
+if(startCarSound) startCarSound.volume = 1.0;
+if(roadSound) roadSound.volume = 1.0;
+if(successMission2Sound) successMission2Sound.volume = 1.0;
+
 
 // ควบคุมระดับเสียงดนตรีประกอบเท่านั้น
 if(volumeSlider) {
     volumeSlider.addEventListener('input', (e) => {
         const volume = e.target.value;
         if(bgMusic1) bgMusic1.volume = volume;
+        if(bgMusic2) bgMusic2.volume = volume;
     });
 }
 
@@ -254,7 +287,7 @@ if(startBtn) {
         gameArea.classList.remove('hidden');
 
         try {
-            // ทดลองเล่นเสียงเพื่อปลดล็อกในเบราว์เซอร์
+            // เริ่มเล่นเพลง Mission1.ogg เพียงครั้งเดียวเมื่อเกมเริ่ม
             if (bgMusic1) bgMusic1.play();
         } catch (e) {
             console.error("Error playing audio on button click:", e);
@@ -262,7 +295,7 @@ if(startBtn) {
         
         missionData = generateAllMissions();
         currentLevel = 0;
-        extraTime = 0; // รีเซ็ตเวลาสะสมเมื่อเริ่มเกมใหม่
+        extraTime = 0;
         startLevel();
     });
 }
@@ -284,6 +317,12 @@ function startTimer(duration) {
     timer = setInterval(() => {
         timeLeft--;
         if(timerDisplay) timerDisplay.textContent = `เวลาที่เหลือ: ${timeLeft} วินาที`;
+
+        // เพิ่มเงื่อนไขเพื่อเล่นเสียงหัวใจเต้นเมื่อเวลาเหลือ 10 วินาที
+        if (timeLeft <= 10 && !heartbeatSound.paused) {
+            if (heartbeatSound) heartbeatSound.play();
+        }
+
         if (timeLeft <= 0) {
             clearInterval(timer);
             endGame(false, "หมดเวลา! ภารกิจล้มเหลว");
@@ -291,23 +330,32 @@ function startTimer(duration) {
     }, 1000);
 }
 
+// ฟังก์ชันสำหรับหยุดเสียงเหตุการณ์ทั้งหมด
+function stopAllEventSounds() {
+    if (heavyBreathingSound) {
+        heavyBreathingSound.pause();
+        heavyBreathingSound.currentTime = 0;
+    }
+    if (heartbeatSound) {
+        heartbeatSound.pause();
+        heartbeatSound.currentTime = 0;
+    }
+    if (runningStairsSound) {
+        runningStairsSound.pause();
+        runningStairsSound.currentTime = 0;
+    }
+}
+
 function startLevel() {
+    stopAllEventSounds();
+    
     currentLevel++;
+
     if (currentLevel > maxLevels) {
         endGame(true, `ยินดีด้วย! คุณตอบคำถามครบ ${maxLevels} ด่านและช่วยตัวประกันสำเร็จ! 🏆`);
         return;
     }
     
-    // จัดการเพลงประกอบและเสียงวิ่งขึ้นบันได
-    if (bgMusic1) {
-        bgMusic1.pause();
-        bgMusic1.currentTime = 0;
-        bgMusic1.play();
-    }
-    if (currentLevel > 1) {
-        if (runningStairsSound) runningStairsSound.play();
-    }
-
     // รีเซ็ตจำนวนครั้งที่ตอบผิดและอัปเดตสถานะ
     incorrectAttemptsInLevel = 0;
     updateStatus();
@@ -330,7 +378,7 @@ function startLevel() {
             btn.className = 'choice-btn';
             btn.textContent = choice;
             btn.onclick = () => {
-                if(buttonPressSound) buttonPressSound.play();
+                if(buttonPressSound) buttonPressSound.play(); // เล่นเสียงกดปุ่ม
                 checkAnswer(btn.textContent);
             };
             choicesDiv.appendChild(btn);
@@ -397,7 +445,7 @@ function generateAllMissions() {
         { riddle: `"ตัวประกันส่งสัญญาณมาว่า "เขาถูกขังไว้ในห้องบนชั้นที่ต้องเดินลงไป" คุณต้องเลือกคำตอบที่ถูกต้องตามความจริง`, answer: 'ชั้นใต้ดิน' },
         { riddle: `"ตัวประกันส่งสัญญาณมาว่า "เขาถูกขังไว้ในห้องที่อยู่ตรงกลางระหว่างชั้น 1 และชั้น 5" คุณต้องเลือกคำตอบที่ถูกต้องตามความจริง`, answer: 'ชั้นที่ 3' },
         { riddle: `"ตัวประกันส่งสัญญาณมาว่า "เขาถูกขังไว้ในห้องที่อยู่บนชั้นสุดท้ายก่อนถึงดาดฟ้า" คุณต้องเลือกคำตอบที่ถูกต้องตามความจริง`, answer: 'ชั้นที่ 4' },
-        { riddle: `"ตัวประกันส่งสัญญาณมาว่า "เขาถูกขังไว้ในห้องบนชั้นที่ต้องใช้รหัสผ่านเท่านั้น" ชั้นของบ้านหลังนี้ไม่มีรหัสผ่าน มีตั้งแต่ชั้นใต้ดิน, ชั้น 1, 2, 3, 4, และชั้นบนสุดเป็นดาดฟ้า" คุณต้องเลือกคำตอบที่ถูกต้องตามความจริง`, answer: 'ชั้นดาดฟ้า' }
+        { riddle: `"ตัวประกันส่งสัญญาณมาว่า "เขาถูกขังไว้ในห้องที่ต้องใช้รหัสผ่านเท่านั้น" ชั้นของบ้านหลังนี้ไม่มีรหัสผ่าน มีตั้งแต่ชั้นใต้ดิน, ชั้น 1, 2, 3, 4, และชั้นบนสุดเป็นดาดฟ้า" คุณต้องเลือกคำตอบที่ถูกต้องตามความจริง`, answer: 'ชั้นดาดฟ้า' }
     ];
     
     const randomFloorRiddle = floorRiddles[Math.floor(Math.random() * floorRiddles.length)];
@@ -628,16 +676,72 @@ function checkAnswer(userAnswer) {
 
     if (isCorrect) {
         clearInterval(timer);
-        extraTime = timeLeft;
+        stopAllEventSounds();
+
         if(resultMessage) {
-            resultMessage.textContent = `ยอดเยี่ยม! ภารกิจสำเร็จ! คุณมีเวลาเพิ่ม ${extraTime} วินาทีสำหรับด่านต่อไป!`;
+            resultMessage.textContent = `ยอดเยี่ยม! ภารกิจสำเร็จ!`;
             resultMessage.className = 'correct-result';
         }
-        if(keyUnlockSound) keyUnlockSound.play();
-        setTimeout(() => {
-            if(doorOpenSound) doorOpenSound.play();
-            setTimeout(startLevel, 1500);
-        }, 800);
+
+        // Special sound handling for specific levels
+        if (currentLevel === 12) {
+            if (bgMusic1) bgMusic1.pause();
+            
+            // เล่น thank.ogg 3 ครั้ง
+            let thankCount = 0;
+            const playThank = () => {
+                if (thankCount < 3) {
+                    if (thankSound) {
+                        thankSound.currentTime = 0;
+                        thankSound.play();
+                        if (thankCount === 2) {
+                            if (scoreSound) {
+                                scoreSound.volume = 0.5;
+                                scoreSound.play();
+                            }
+                        }
+                    }
+                    thankCount++;
+                    setTimeout(playThank, 1500);
+                }
+            };
+
+            playThank();
+
+            // จัดการเวลา 30 วินาทีและเริ่มภารกิจใหม่
+            setTimeout(() => {
+                if (bgMusic1) bgMusic1.pause();
+                if (bgMusic2) bgMusic2.pause();
+                if (scoreSound) {
+                    scoreSound.pause();
+                    scoreSound.currentTime = 0;
+                }
+                
+                if (challengeDescription) challengeDescription.textContent = "ภารกิจที่ 2: การพาตัวประกันหลบหนี!";
+                if (runningStairsSound) runningStairsSound.play();
+                if (bgMusic2) bgMusic2.play();
+                extraTime = 0;
+                startLevel();
+            }, 30000);
+
+        } else if (currentLevel === 19) {
+            if (startCarSound) startCarSound.play();
+            startCarSound.onended = () => {
+                if (bgMusic2) bgMusic2.pause();
+                if (successMission2Sound) successMission2Sound.play();
+                if (roadSound) roadSound.play();
+                roadSound.onended = () => {
+                     endGame(true, `คุณและตัวประกันหลบหนีสำเร็จ! ยินดีด้วย! 🏆`);
+                };
+            };
+        } else {
+            if(keyUnlockSound) keyUnlockSound.play();
+            setTimeout(() => {
+                if(doorOpenSound) doorOpenSound.play();
+                setTimeout(startLevel, 1500);
+            }, 800);
+        }
+
     } else {
         incorrectAttemptsInLevel++;
         updateStatus();
@@ -645,18 +749,30 @@ function checkAnswer(userAnswer) {
             resultMessage.textContent = 'คำตอบผิดพลาด! ลองใหม่อีกครั้ง';
             resultMessage.className = 'incorrect-result';
         }
-        if(failSound) failSound.play();
         
+        if (failSound) failSound.play();
+        if (incorrectAttemptsInLevel === 1) {
+            failSound.onended = () => {
+                if (heavyBreathingSound) heavyBreathingSound.play();
+            };
+        } else if (incorrectAttemptsInLevel === 2) {
+            if (heartbeatSound) heartbeatSound.play();
+        }
+
         if (incorrectAttemptsInLevel >= maxIncorrectAttempts) {
             setTimeout(() => endGame(false, `คุณตอบผิดครบ ${maxIncorrectAttempts} ครั้ง! ภารกิจล้มเหลว`), 1000);
         } else {
-            choiceButtons.forEach(btn => btn.disabled = false); // เปิดให้เลือกใหม่
+            choiceButtons.forEach(btn => btn.disabled = false);
         }
     }
 }
 
 function endGame(isWin, message) {
     if(bgMusic1) bgMusic1.pause();
+    if(bgMusic2) bgMusic2.pause();
+    if(scoreSound) scoreSound.pause();
+    stopAllEventSounds();
+    if (successMission2Sound) successMission2Sound.pause();
 
     clearInterval(timer);
     if(levelHeader) levelHeader.textContent = '';
@@ -667,7 +783,7 @@ function endGame(isWin, message) {
     if(resultMessage) resultMessage.textContent = '';
     
     if (isWin) {
-        if(missionCompleteSound) missionCompleteSound.play();
+        if(successMission2Sound) successMission2Sound.play();
     } else {
         if(gameOverSound) gameOverSound.play();
     }
